@@ -34,12 +34,8 @@ class UserTile extends StatelessWidget {
             title: AppText(text: text, size: 20, color: AppColors.darkgrey),
             trailing: newMessagesCount != null && newMessagesCount! > 0
                 ? CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Colors.red,
-                    child: Text(
-                      '$newMessagesCount',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
-                    ),
+                    radius: 10,
+                    backgroundColor: Colors.green,
                   )
                 : null,
             onTap: onTap,

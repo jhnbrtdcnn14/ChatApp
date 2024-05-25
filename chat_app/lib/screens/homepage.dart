@@ -115,20 +115,22 @@ class HomePage extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.active) {
             if (snapshot.hasData) {
               final newMessagesCount = snapshot.data!.docs.length;
+
               return UserTile(
-                  text: userData["email"],
-                  newMessagesCount: newMessagesCount,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => chatPage(
-                          receiverEmail: userData["email"],
-                          receiverID: userData["uid"],
-                        ),
+                text: userData["email"],
+                newMessagesCount: newMessagesCount,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => chatPage(
+                        receiverEmail: userData["email"],
+                        receiverID: userData["uid"],
                       ),
-                    );
-                  });
+                    ),
+                  );
+                },
+              );
             } else {
               return Container();
             }

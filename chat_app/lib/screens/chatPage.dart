@@ -1,5 +1,6 @@
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/components/colors.dart';
+import 'package:chat_app/components/noMessage.dart';
 import 'package:chat_app/components/text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -100,7 +101,6 @@ class _chatPageState extends State<chatPage> {
     );
   }
 
-  // build messages
   Widget _buildMessages() {
     String senderID = authService.getCurrentUser()!.uid;
 
@@ -115,15 +115,24 @@ class _chatPageState extends State<chatPage> {
           return const Loading();
         }
 
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: ListView(
-            controller: _scrollController,
-            children: snapshot.data!.docs
-                .map((doc) => _buildMessageItems(doc))
-                .toList(),
-          ),
-        );
+        if (snapshot.data!.docs.isEmpty) {
+          return const noMessage();
+        } else {
+          // After messages are built, scroll down
+          WidgetsBinding.instance!.addPostFrameCallback((_) {
+            scrollDown();
+          });
+
+          return Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: ListView(
+              controller: _scrollController,
+              children: snapshot.data!.docs
+                  .map((doc) => _buildMessageItems(doc))
+                  .toList(),
+            ),
+          );
+        }
       },
     );
   }

@@ -33,6 +33,10 @@ class _RegisterPageState extends State<RegisterPage> {
   void register(BuildContext context) async {
     final authService = AuthService();
 
+    if (_number.text.length < 11) {
+      showRedSnackBar(context, "Phone number should be 11 digits", 5);
+      return;
+    }
     if (_firstname.text.isEmpty ||
         _lastname.text.isEmpty ||
         _email.text.isEmpty ||
@@ -41,10 +45,6 @@ class _RegisterPageState extends State<RegisterPage> {
       // Show error message or handle empty fields
       showRedSnackBar(context, "Please fill in all required fields.", 5);
       return;
-    }
-
-    if (_number.text.length < 11) {
-      showRedSnackBar(context, "Phone number should be 11 digits", 5);
     }
 
     if (_password.text != _confirm.text) {

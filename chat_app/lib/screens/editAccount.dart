@@ -45,6 +45,7 @@ class _editAccountState extends State<editAccount> {
       isLoading = true;
     });
     final authService = AuthService();
+
     try {
       print("Saving user data: $userData");
       await authService.updateUserData(
