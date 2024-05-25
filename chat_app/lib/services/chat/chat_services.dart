@@ -64,21 +64,6 @@ class ChatService {
         .snapshots();
   }
 
-  Stream<int> countNewMessages(String userID, String otherUserID) {
-    List<String> ids = [userID, otherUserID];
-    ids.sort();
-    String chatRoomID = ids.join('_');
-
-    return FirebaseFirestore.instance
-        .collection("chat_rooms")
-        .doc(chatRoomID)
-        .collection("messages")
-        .where("status", isEqualTo: "new")
-        .where("senderID", isNotEqualTo: userID)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
-  }
-
   // delete message
 
   Future<void> deleteMessage(String senderID, String message, String receiverID,
