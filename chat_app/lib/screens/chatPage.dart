@@ -124,7 +124,7 @@ class _chatPageState extends State<chatPage> {
           });
 
           return Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: ListView(
               controller: _scrollController,
               children: snapshot.data!.docs
@@ -143,6 +143,7 @@ class _chatPageState extends State<chatPage> {
 
     final message = data["message"];
     final senderID = data["senderID"];
+    Timestamp time = data["timestamp"];
 
     bool isCurrentUser = data["senderID"] == authService.getCurrentUser()!.uid;
 
@@ -150,6 +151,7 @@ class _chatPageState extends State<chatPage> {
         child: Column(
       children: [
         ChatBubble(
+            timestamp: time,
             isCurrentUser: isCurrentUser,
             message: message,
             senderID: senderID,

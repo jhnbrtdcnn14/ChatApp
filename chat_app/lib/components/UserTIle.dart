@@ -19,12 +19,12 @@ class UserTile extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
               color: AppColors.white, borderRadius: BorderRadius.circular(10)),
           child: ListTile(
             leading: CircleAvatar(
-              radius: 50,
+              radius: 40,
               backgroundColor: AppColors.blue,
               child: Icon(
                 Icons.person,

@@ -39,8 +39,8 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       showRedSnackBar(
           context,
-          e.toString(),
-          // "Authentication FAILED. The account credentials may be incorrect. Please try again.",
+          // e.toString(),
+          "Authentication FAILED. The account credentials may be incorrect. Please try again.",
           3);
     }
 
