@@ -119,7 +119,7 @@ class _chatPageState extends State<chatPage> {
           return const noMessage();
         } else {
           // After messages are built, scroll down
-          WidgetsBinding.instance!.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             scrollDown();
           });
 

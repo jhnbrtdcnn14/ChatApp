@@ -22,6 +22,5 @@ class noMessage extends StatelessWidget {
         AppText(text: "No messages yet", size: 20, color: AppColors.darkgrey),
       ],
     ));
-    ;
   }
 }

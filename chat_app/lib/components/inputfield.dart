@@ -51,7 +51,7 @@ class CustomTextField extends StatelessWidget {
       inputFormatters: isNumeric
           ? [FilteringTextInputFormatter.digitsOnly]
           : isAlphabetic
-              ? [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]'))]
+              ? [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]
               : [], // Apply letter filter if isAlphabetic is true
     );
   }
