@@ -1,17 +1,14 @@
 import 'package:chat_app/components/colors.dart';
 import 'package:chat_app/components/text.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 
 class UserTile extends StatelessWidget {
   final String text;
   final VoidCallback onTap;
-  final int? newMessagesCount;
 
   UserTile({
     required this.text,
     required this.onTap,
-    required this.newMessagesCount,
   });
 
   @override
@@ -32,16 +29,12 @@ class UserTile extends StatelessWidget {
               ),
             ),
             title: AppText(text: text, size: 20, color: AppColors.darkgrey),
-            trailing: newMessagesCount != null && newMessagesCount! > 0
-                ? CircleAvatar(
-                    radius: 10,
-                    backgroundColor: Colors.green,
-                  )
-                : null,
             onTap: onTap,
           ),
         ),
-        Gap(20)
+        SizedBox.square(
+          dimension: 10,
+        ),
       ],
     );
   }

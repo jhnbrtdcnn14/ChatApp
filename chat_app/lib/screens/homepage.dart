@@ -1,26 +1,30 @@
 import 'package:chat_app/components/colors.dart';
-import 'package:chat_app/components/loading.dart';
 import 'package:chat_app/components/text.dart';
+import 'package:chat_app/screens/Account_info.dart';
+import 'package:chat_app/screens/mychats.dart';
+import 'package:chat_app/screens/users.dart';
 import 'package:flutter/material.dart';
 
-import '../components/UserTile.dart';
 import '../components/bottomSheetContent.dart';
-import '../services/auth/auth_service.dart';
-import '../services/chat/chat_services.dart';
-import 'chatPage.dart';
-import 'viewprofile.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-class HomePage extends StatelessWidget {
-  HomePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
-  // chat and auth services
-  final ChatService chatService = ChatService();
-  final AuthService _authService = AuthService();
+  @override
+  State<HomePage> createState() => HomePageState();
+}
+
+class HomePageState extends State<HomePage> {
+  final ValueNotifier<int> selectedIndex = ValueNotifier(0);
+
+  @override
+  void dispose() {
+    selectedIndex.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Track HomePage execution
     return Scaffold(
       backgroundColor: AppColors.offwhite,
 
@@ -44,7 +48,7 @@ class HomePage extends StatelessWidget {
             icon: const Icon(Icons.person_rounded),
             onPressed: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ProfilePage()));
+                  MaterialPageRoute(builder: (context) => const AccountInfo()));
             },
           ),
           IconButton(
@@ -58,10 +62,25 @@ class HomePage extends StatelessWidget {
       ),
 
       // BODY
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: _buildUserList(),
+      body: ValueListenableBuilder(
+        valueListenable: selectedIndex,
+        builder: (context, value, child) {
+          return value == 0 ? Users() : Mychat();
+        },
+      ),
+
+      // BOTTOM NAVIGATION BAR
+      bottomNavigationBar: ValueListenableBuilder(
+        valueListenable: selectedIndex,
+        builder: (context, value, child) => BottomNavigationBar(
+          currentIndex: value,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Users"),
+            BottomNavigationBarItem(icon: Icon(Icons.message), label: "Chats"),
+          ],
+          onTap: (index) {
+            selectedIndex.value = index;
+          },
         ),
       ),
     );
@@ -75,85 +94,8 @@ class HomePage extends StatelessWidget {
       showDragHandle: true,
       context: context,
       builder: (context) {
-        return BottomSheetContent();
+        return const BottomSheetContent();
       },
     );
-  }
-
-  Widget _buildUserList() {
-    return StreamBuilder(
-      stream: chatService.getUserStream(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Padding(
-            padding: EdgeInsets.only(top: 100),
-            child: Loading(),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return const Center(child: Text('An error occurred'));
-        }
-
-        return Column(
-          children: snapshot.data!
-              .map<Widget>((userData) => _buildUserListItem(userData, context))
-              .toList(),
-        );
-      },
-    );
-  }
-
-  Widget _buildUserListItem(
-      Map<String, dynamic> userData, BuildContext context) {
-    final currentUserId = _authService.getCurrentUser()!.uid;
-
-    if (userData["email"] != _authService.getCurrentUser()!.email) {
-      return StreamBuilder<QuerySnapshot>(
-        stream: getMessages(currentUserId, userData["uid"]),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              final newMessagesCount = snapshot.data!.docs.length;
-
-              return UserTile(
-                text: userData["email"],
-                newMessagesCount: newMessagesCount,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => chatPage(
-                        receiverEmail: userData["email"],
-                        receiverID: userData["uid"],
-                      ),
-                    ),
-                  );
-                },
-              );
-            } else {
-              return Container();
-            }
-          } else {
-            return Container();
-          }
-        },
-      );
-    } else {
-      return Container();
-    }
-  }
-
-  Stream<QuerySnapshot> getMessages(String userID, String otherUserID) {
-    List<String> ids = [userID, otherUserID];
-    ids.sort();
-    String chatRoomID = ids.join('_');
-
-    return FirebaseFirestore.instance
-        .collection("chat_rooms")
-        .doc(chatRoomID)
-        .collection("messages")
-        .where("status", isEqualTo: "new")
-        .snapshots();
   }
 }

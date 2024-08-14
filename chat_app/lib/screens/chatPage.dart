@@ -4,76 +4,75 @@ import 'package:chat_app/components/noMessage.dart';
 import 'package:chat_app/components/text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 import '../components/inputfield.dart';
 import '../components/loading.dart';
 import '../services/auth/auth_service.dart';
 import '../services/chat/chat_services.dart';
 
-class chatPage extends StatefulWidget {
-  final String receiverEmail;
-  final String receiverID;
-  chatPage({super.key, required this.receiverEmail, required this.receiverID});
+class ChatPage extends StatefulWidget {
+  final Map<String, dynamic> userData;
+
+  const ChatPage({super.key, required this.userData});
 
   @override
-  State<chatPage> createState() => _chatPageState();
+  State<ChatPage> createState() => _ChatPageState();
 }
 
-class _chatPageState extends State<chatPage> {
-  // text controller
-  final TextEditingController messageController = TextEditingController();
+class _ChatPageState extends State<ChatPage> {
+  final AuthService _authService = AuthService();
+  final ChatService _chatService = ChatService();
 
-  //  chat & auth services
-  final ChatService chatService = ChatService();
-  final AuthService authService = AuthService();
-
-  // for textfield focus
-  FocusNode myfocusNode = FocusNode();
-
-  // scroll controller
+  final TextEditingController _messageController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+  final ValueNotifier<IconStatus> _iconStatus = ValueNotifier(IconStatus.send);
+
+  late String receiverEmail = '';
+  late String receiverID = '';
 
   @override
   void initState() {
     super.initState();
-    // add listener
-    myfocusNode.addListener(() {
-      if (myfocusNode.hasFocus) {
-        // wait for keyboard to show up
-        Future.delayed(Duration(milliseconds: 500), () {
-          // scroll to bottom
-          scrollDown();
-        });
-      }
-    });
+    receiverEmail = widget.userData["email"];
+    receiverID = widget.userData["uid"];
+    _focusNode.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
-    // remove listener
-    messageController.dispose();
-    myfocusNode.dispose();
+    _iconStatus.dispose();
+    _messageController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void scrollDown() {
+  void _onFocusChange() {
+    if (_focusNode.hasFocus) {
+      Future.delayed(const Duration(milliseconds: 500), _scrollDown);
+    }
+  }
+
+  void _scrollDown() {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
       curve: Curves.fastOutSlowIn,
     );
   }
 
-  // send message
-  void sendMessage() async {
-    // if there is something to send
-    if (messageController.text.isNotEmpty) {
-      // send message
-      await chatService.sendMessage(widget.receiverID, messageController.text);
-      messageController.clear();
+  Future<void> _sendMessage() async {
+    final message = _messageController.text.trim();
+    if (message.isNotEmpty) {
+      _iconStatus.value = IconStatus.sending;
+      final success = await _chatService.sendMessage(receiverID, message);
+      _iconStatus.value = success ? IconStatus.success : IconStatus.error;
+      if (success) {
+        _messageController.clear();
+      }
+      Future.delayed(const Duration(seconds: 1), () {
+        _iconStatus.value = IconStatus.send;
+      });
     }
-
-    scrollDown();
   }
 
   @override
@@ -82,82 +81,67 @@ class _chatPageState extends State<chatPage> {
       backgroundColor: AppColors.offwhite,
       appBar: AppBar(
         title: AppText(
-            text: widget.receiverEmail, size: 18, color: AppColors.darkgrey),
+          text: receiverEmail,
+          size: 18,
+          color: AppColors.darkgrey,
+        ),
       ),
       body: Column(
         children: [
-          // display messages
           Expanded(child: _buildMessages()),
-
-          // input field
           Container(
+            decoration: const BoxDecoration(color: AppColors.white),
             child: _buildUserInput(),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-            ),
-          )
+          ),
         ],
       ),
     );
   }
 
+
   Widget _buildMessages() {
-    String senderID = authService.getCurrentUser()!.uid;
+    final senderID = _authService.getCurrentUser()!.uid;
+
+    List<String> ids = [senderID, receiverID];
+    ids.sort();
+    String chatRoomID = ids.join('_');
+    ChatService().markMessagesAsRead(chatRoomID, senderID);
 
     return StreamBuilder(
-      stream: chatService.getMessages(widget.receiverID, senderID),
+      stream: _chatService.getMessages(receiverID, senderID),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const Text("Error");
-        }
-
+        if (snapshot.hasError) return const Text("Error");
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
         }
+        if (snapshot.data!.docs.isEmpty) return const noMessage();
 
-        if (snapshot.data!.docs.isEmpty) {
-          return const noMessage();
-        } else {
-          // After messages are built, scroll down
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            scrollDown();
-          });
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollDown());
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: ListView(
-              controller: _scrollController,
-              children: snapshot.data!.docs
-                  .map((doc) => _buildMessageItems(doc))
-                  .toList(),
-            ),
-          );
-        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: ListView(
+            controller: _scrollController,
+            children: snapshot.data!.docs.map(_buildMessageItem).toList(),
+          ),
+        );
       },
     );
   }
 
-  // build message items
-  Widget _buildMessageItems(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  Widget _buildMessageItem(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final isCurrentUser =
+        data["senderID"] == _authService.getCurrentUser()!.uid;
 
-    final message = data["message"];
-    final senderID = data["senderID"];
-    Timestamp time = data["timestamp"];
-
-    bool isCurrentUser = data["senderID"] == authService.getCurrentUser()!.uid;
-
-    return Container(
-        child: Column(
-      children: [
-        ChatBubble(
-            timestamp: time,
-            isCurrentUser: isCurrentUser,
-            message: message,
-            senderID: senderID,
-            recieverID: widget.receiverID),
-      ],
-    ));
+    return ChatBubble(
+      timestamp: data["timestamp"] as Timestamp,
+      isCurrentUser: isCurrentUser,
+      message: data["message"] as String,
+      status: data["status"] as String,
+      senderID: data["senderID"] as String,
+      recieverID: receiverID,
+    );
   }
 
   Widget _buildUserInput() {
@@ -167,20 +151,54 @@ class _chatPageState extends State<chatPage> {
         children: [
           Expanded(
             child: CustomTextField(
-              focusNode: myfocusNode,
-              controller: messageController,
+              focusNode: _focusNode,
+              controller: _messageController,
               hintText: 'Type a message',
               cursorColor: AppColors.darkgrey,
             ),
           ),
-          IconButton(
-            iconSize: 50,
-            onPressed: sendMessage,
-            icon: Icon(Icons.send),
-            color: AppColors.blue,
-          )
+          ValueListenableBuilder<IconStatus>(
+            valueListenable: _iconStatus,
+            builder: (context, status, child) {
+              Widget iconWidget;
+
+              switch (status) {
+                case IconStatus.sending:
+                  iconWidget = const SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 5,
+                        color: Colors.green,
+                      ),
+                    ),
+                  );
+                  break;
+                case IconStatus.success:
+                  iconWidget = const Icon(Icons.check_circle_outline,
+                      color: Colors.green);
+                  break;
+                case IconStatus.error:
+                  iconWidget =
+                      const Icon(Icons.error_outline, color: Colors.red);
+                  break;
+                default:
+                  iconWidget = const Icon(Icons.send, color: AppColors.blue);
+              }
+
+              return IconButton(
+                iconSize: 50,
+                onPressed: status == IconStatus.sending ? null : _sendMessage,
+                icon: iconWidget,
+              );
+            },
+          ),
         ],
       ),
     );
   }
 }
+
+enum IconStatus { send, sending, success, error }

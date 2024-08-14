@@ -22,6 +22,7 @@ class AuthService {
 
       // save user info if it doesnt exist
       return userCredential;
+      
     } on FirebaseAuthException catch (e) {
       throw Exception(e.message);
     }

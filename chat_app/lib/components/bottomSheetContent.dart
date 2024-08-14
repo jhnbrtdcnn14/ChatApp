@@ -1,20 +1,20 @@
 import 'package:chat_app/components/buttons.dart';
 import 'package:chat_app/components/colors.dart';
+import 'package:chat_app/screens/Account_info.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-import '../screens/editAccount.dart';
 import '../services/auth/auth_service.dart';
 import 'text.dart';
 
 class BottomSheetContent extends StatelessWidget {
-  const BottomSheetContent({Key? key}) : super(key: key);
+  const BottomSheetContent({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -39,11 +39,11 @@ class BottomSheetContent extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
               },
-              leading: Icon(
+              leading: const Icon(
                 Icons.home,
                 color: AppColors.darkgrey,
               ),
-              title: AppText(
+              title: const AppText(
                 text: "Home",
                 isBold: true,
                 size: 20,
@@ -59,14 +59,18 @@ class BottomSheetContent extends StatelessWidget {
             child: ListTile(
               onTap: () {
                 // Navigator.pop(context);
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => editAccount()));
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AccountInfo(
+                              isEditable: true,
+                            )));
               },
-              leading: Icon(
+              leading: const Icon(
                 Icons.edit,
                 color: AppColors.darkgrey,
               ),
-              title: AppText(
+              title: const AppText(
                 text: "Edit Personal Info",
                 isBold: true,
                 size: 20,
@@ -74,7 +78,7 @@ class BottomSheetContent extends StatelessWidget {
               ),
             ),
           ),
-          Gap(50),
+          const Gap(50),
 
           // List Tile logout
           AppButtons(

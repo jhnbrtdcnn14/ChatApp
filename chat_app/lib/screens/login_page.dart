@@ -20,33 +20,32 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool isLoading = false;
+  ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
+
+  @override
+  void dispose() {
+    isLoading.dispose();
+    super.dispose();
+  }
 
   void login(BuildContext context) async {
     final authService = AuthService();
-
     try {
-      setState(() {
-        isLoading = true;
-      });
-      Loading();
+      isLoading.value = true;
+      const Loading();
       await authService.signInWithEmailPassword(
           _usernameController.text, _passwordController.text);
 
-      setState(() {
-        isLoading = false;
-      });
+      isLoading.value = false;
     } catch (e) {
       showRedSnackBar(
+          // ignore: use_build_context_synchronously
           context,
           // e.toString(),
           "Authentication FAILED. The account credentials may be incorrect. Please try again.",
           3);
     }
-
-    setState(() {
-      isLoading = false;
-    });
+    isLoading.value = false;
   }
 
   @override
@@ -80,12 +79,12 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _usernameController,
                 hintText: 'Email',
               ),
-              Gap(20),
+              const Gap(20),
               CustomTextField(
                 controller: _passwordController,
                 hintText: 'Password',
               ),
-              Gap(20),
+              const Gap(20),
 
               // FORGOT PASSWORD
               Row(
@@ -100,20 +99,21 @@ class _LoginPageState extends State<LoginPage> {
                           color: AppColors.lightgrey)),
                 ],
               ),
-              Gap(30),
-
-              isLoading
-                  ? const Loading()
-                  : // BUTTONS
-                  AppButtons(
-                      onPressed: () {
-                        login(context);
-                      },
-                      textcolor: AppColors.white,
-                      color: AppColors.blue,
-                      text: "Login"),
-
-              Gap(20),
+              const Gap(30),
+              ValueListenableBuilder(
+                  valueListenable: isLoading,
+                  builder: (context, value, child) {
+                    return value
+                        ? const Loading()
+                        : AppButtons(
+                            onPressed: () {
+                              login(context);
+                            },
+                            textcolor: AppColors.white,
+                            color: AppColors.blue,
+                            text: "Login");
+                  }),
+              const Gap(20),
               Stack(
                 children: [
                   const Divider(
@@ -140,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-              Gap(20),
+              const Gap(20),
 
               AppButtonsFlat(
                   onPressed: () {
@@ -149,12 +149,11 @@ class _LoginPageState extends State<LoginPage> {
                       MaterialPageRoute(
                           builder: (context) => const RegisterPage()),
                     );
-                    print("Sign Up");
                   },
                   textcolor: AppColors.blue,
                   color: AppColors.white,
                   text: "Sign Up"),
-              Gap(50),
+              const Gap(50),
             ]),
           ),
         ),

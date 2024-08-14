@@ -22,7 +22,7 @@ class Message {
       'receiverID': receiverID,
       'message': message,
       'timestamp': timestamp,
-      'status': 'new',
+      'status': 'unread',
     };
   }
 }

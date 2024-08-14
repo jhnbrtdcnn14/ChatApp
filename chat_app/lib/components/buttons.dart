@@ -9,12 +9,12 @@ class AppButtons extends StatelessWidget {
   final Color color;
 
   const AppButtons({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.textcolor,
     required this.color,
     required this.text,
-  }) : super(key: key);
+  });
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -58,12 +58,12 @@ class AppButtonsFlat extends StatelessWidget {
   final Color color;
 
   const AppButtonsFlat({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.textcolor,
     required this.color,
     required this.text,
-  }) : super(key: key);
+  });
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -78,7 +78,7 @@ class AppButtonsFlat extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
-                  side: BorderSide(color: AppColors.blue, width: 1),
+                  side: const BorderSide(color: AppColors.blue, width: 1),
                   // Set the border radius here
                 ),
                 backgroundColor: color,

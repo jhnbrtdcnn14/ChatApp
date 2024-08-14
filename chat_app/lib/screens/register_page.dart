@@ -28,7 +28,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
-  bool isLoading = false;
+  ValueNotifier<bool> isLoading = ValueNotifier(false);
 
   void register(BuildContext context) async {
     final authService = AuthService();
@@ -52,29 +52,27 @@ class _RegisterPageState extends State<RegisterPage> {
           context, "Password do not match", 3); // Corrected function call
       return;
     } else {
-      setState(() {
-        isLoading = true;
-      });
+      isLoading.value = true;
       try {
-        Loading();
+        const Loading();
         await authService.signUpWithEmailPassword(_email.text, _password.text,
             _firstname.text, _middlename.text, _lastname.text, _number.text);
 
-        setState(() {
-          isLoading = false;
-        });
+        isLoading.value = false;
 
-        showSuccessSnackBar(context, "Account Created Successfully");
+        // ignore: use_build_context_synchronously
+        {
+          showSuccessSnackBar(context, "Account Created Successfully");
+        }
         Navigator.pushReplacement(
+          // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(
-            builder: (context) => HomePage(),
+            builder: (context) => const HomePage(),
           ),
         );
       } catch (e) {
-        setState(() {
-          isLoading = false;
-        });
+        isLoading.value = false;
         String errorMessage = "Registration failed."; // Default error message
         if (e is FirebaseAuthException) {
           // Handle FirebaseAuthException
@@ -121,7 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Center(
             // PERSONAL INFORMATION
             child: Column(children: [
-              AppText(
+              const AppText(
                   isBold: true,
                   text: "PERSONAL INFORMATION",
                   size: 20,
@@ -134,27 +132,27 @@ class _RegisterPageState extends State<RegisterPage> {
                 hintText: 'First name',
                 isAlphabetic: true,
               ),
-              Gap(20),
+              const Gap(20),
               CustomTextField(
                 controller: _middlename,
                 hintText: 'Middle name',
                 isAlphabetic: true,
               ),
-              Gap(20),
+              const Gap(20),
               CustomTextField(
                 controller: _lastname,
                 hintText: 'Last name',
                 isAlphabetic: true,
               ),
-              Gap(20),
+              const Gap(20),
               CustomTextField(
                 controller: _number,
                 hintText: 'Contact number',
                 isNumeric: true,
               ),
-              Gap(50),
+              const Gap(50),
 
-              AppText(
+              const AppText(
                   isBold: true,
                   text: "ACCOUNT CREDENTIALS",
                   size: 20,
@@ -166,44 +164,46 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _email,
                 hintText: 'Email',
               ),
-              Gap(20),
+              const Gap(20),
               CustomTextField(
                 controller: _password,
                 hintText: 'Password',
               ),
-              Gap(20),
+              const Gap(20),
               CustomTextField(
                 controller: _confirm,
                 hintText: 'Confirm Password',
               ),
-              Gap(40),
-
-              isLoading
-                  ? const Loading()
-                  : AppButtons(
-                      onPressed: () {
-                        register(context);
-                      },
-                      textcolor: AppColors.white,
-                      color: AppColors.blue,
-                      text: "Sign up"),
-
-              Gap(20),
+              const Gap(40),
+              ValueListenableBuilder(
+                  valueListenable: isLoading,
+                  builder: (context, value, child) {
+                    return value
+                        ? const Loading()
+                        : AppButtons(
+                            onPressed: () {
+                              register(context);
+                            },
+                            textcolor: AppColors.white,
+                            color: AppColors.blue,
+                            text: "Sign up");
+                  }),
+              const Gap(20),
 
               // LOGIN HERE
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AppText(
+                  const AppText(
                       text: "Already have an account?",
                       size: 15,
                       color: AppColors.lightgrey),
-                  Gap(10),
+                  const Gap(10),
                   TextButton(
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: AppText(
+                      child: const AppText(
                           text: "Login here",
                           size: 15,
                           isBold: true,

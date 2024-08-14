@@ -11,6 +11,7 @@ class ChatBubble extends StatefulWidget {
   final Timestamp timestamp; // Correcting the timestamp declaration
   final String recieverID;
   final String message;
+  final String status;
   final bool isCurrentUser;
   final String senderID;
 
@@ -20,6 +21,7 @@ class ChatBubble extends StatefulWidget {
     required this.recieverID,
     required this.isCurrentUser,
     required this.message,
+    required this.status,
     required this.senderID,
   });
 
@@ -65,7 +67,7 @@ class _ChatBubbleState extends State<ChatBubble> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
-                  _formatTimestamp(widget.timestamp),
+                  '${widget.status} · ${_formatTimestamp(widget.timestamp)}',
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
